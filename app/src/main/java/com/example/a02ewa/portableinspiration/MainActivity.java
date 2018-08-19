@@ -24,8 +24,6 @@ public class MainActivity extends AppCompatActivity {
     //affected by background noise (works by magnitude) as checks current magnitude is greater then average (historically) times this
     private final double INTER_NOTE_CONSTANT = 0.75; //checks by a factor of this on either side of the note (normally between 0.5 and 1)
     //higher is less sensitive (mostly unaffected by background noise but can lead to ignoring note changes)
-    private final double LOWER_OCTAVE_MINIMUM = 8; //sees if the lower octave at least max/this.
-    //a higher number means more likely to choose the lower octave
     private final HashMap mymap = new HashMap(64, (float) 1);
     private int NOTE_RANGE = 64;
 
@@ -68,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
                     double current = Math.round(5500*Math.pow(2, i/12.0))/100.0;
                     relativeFreq[i] = current / sampleRateInHz;
                     freqList[i] = current;
-                    mymap.put(current, noteList[i%12]+((i+9)/12));
+                    mymap.put(current, noteList[i%12]+(1+((i+9)/12)));
                 }
                 System.out.println("BEFORE");
                 AudioRecord recorder = new AudioRecord(
@@ -118,7 +116,6 @@ public class MainActivity extends AppCompatActivity {
                     for (int i=0; i < magnitude.length; i++){
                         relativeMag[i] = magnitude[i]/max;
                     }
-
                     if (average*AVERAGE_THRESHOLD_CONSTANT<max) {
 
                         double upperFreq = freqList[Math.min(highest+1, 63)];
@@ -132,12 +129,9 @@ public class MainActivity extends AppCompatActivity {
                                 newFreq = lastFreq;
                             }
                         }
-                        if (highest >= 12 && relativeMag[Math.max(0, highest-12)] >= max/LOWER_OCTAVE_MINIMUM){
-                            newFreq = freqList[highest-12];
-                        }
                         final double finalFreq = newFreq;
                         final String note = (String) mymap.get(newFreq);
-                        System.out.println(String.format("Frequency: %f Note: %s", finalFreq, note));
+                        System.out.println(String.format("\nFrequency: %f Note: %s", finalFreq, note));
                         runOnUiThread(new Runnable() {
 
                             @Override
